@@ -1,8 +1,10 @@
 package com.example.catchai.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -58,17 +62,14 @@ fun AiChatbotFactCheckerScreen(
             Text("  • Focus on one claim at a time")
 
             // Chat history
-            LazyColumn(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
-                items(uiState.chatHistory) { message ->
+            LazyColumn(modifier = Modifier.weight(1f).padding(vertical = 8.dp), reverseLayout = true) {
+                items(uiState.chatHistory.reversed()) { message ->
                     when (message) {
-                        is ChatMessage.UserMessage -> {
-                            Text(text = "User: ${message.text}")
-                        }
                         is ChatMessage.ModelFactCheck -> {
                             FactCheckResultContent(result = message.result)
                         }
-                        is ChatMessage.ModelError -> {
-                            Text(text = "Gemini: ${message.message}")
+                        else -> {
+                            ChatBubble(message = message)
                         }
                     }
                 }
@@ -109,11 +110,50 @@ fun AiChatbotFactCheckerScreen(
 }
 
 @Composable
+private fun ChatBubble(message: ChatMessage) {
+    val isUserMessage = message is ChatMessage.UserMessage
+    val backgroundColor = if (isUserMessage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val textColor = if (isUserMessage) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        contentAlignment = if (isUserMessage) Alignment.CenterEnd else Alignment.CenterStart
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(backgroundColor)
+                .padding(16.dp)
+        ) {
+            when (message) {
+                is ChatMessage.UserMessage -> {
+                    Text(text = message.text, color = textColor)
+                }
+                is ChatMessage.ModelError -> {
+                    Text(text = message.message, color = textColor)
+                }
+                else -> { /* ModelFactCheck is handled separately */ }
+            }
+        }
+    }
+}
+
+@Composable
 private fun FactCheckResultContent(result: FactCheckResult) {
     val uriHandler = LocalUriHandler.current
 
-    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             // Verification Status
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Verification Status: ", style = MaterialTheme.typography.bodyLarge)
