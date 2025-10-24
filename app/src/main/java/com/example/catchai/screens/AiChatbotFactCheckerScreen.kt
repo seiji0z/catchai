@@ -41,7 +41,7 @@ fun AiChatbotFactCheckerScreen(
     Scaffold(
         containerColor = Color.Black,
         bottomBar = {
-            BottomInputBarWhite(
+            BottomInputBar(
                 message = uiState.message,
                 isLoading = uiState.isLoading,
                 onMessageChange = { chatViewModel.onEvent(ChatEvent.OnMessageChange(it)) },
@@ -76,7 +76,7 @@ fun AiChatbotFactCheckerScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Verify headlines, quotes, and claims with AI-powered\nfact-checking using trusted sources.",
+                    text = "Verify headlines, quotes, and claims with AI-powered fact-checking using trusted sources.",
                     color = Color(0xFFB0B0B0),
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp,
@@ -119,11 +119,11 @@ fun AiChatbotFactCheckerScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.End // ✅ Align to the right
+                                    horizontalArrangement = Arrangement.End 
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .background(Color(0xFF3578E5), RoundedCornerShape(16.dp))
+                                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                                             .padding(horizontal = 14.dp, vertical = 10.dp)
                                     ) {
                                         Text(
@@ -140,7 +140,7 @@ fun AiChatbotFactCheckerScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.Start // ✅ Align to the left
+                                    horizontalArrangement = Arrangement.Start 
                                 ) {
                                     FactCheckResultContent(result = message.result)
                                 }
@@ -179,8 +179,8 @@ fun AiChatbotFactCheckerScreen(
 
 @Composable
 fun FactTipPill(text: String, isHighlighted: Boolean = false) {
-    val borderColor = if (isHighlighted) Color(0xFF3578E5) else Color.White
-    val textColor = if (isHighlighted) Color(0xFF3578E5) else Color.White
+    val borderColor = if (isHighlighted) MaterialTheme.colorScheme.primary else Color.White
+    val textColor = if (isHighlighted) MaterialTheme.colorScheme.primary else Color.White
 
     Box(
         modifier = Modifier
@@ -308,9 +308,9 @@ private fun FactCheckResultContent(result: FactCheckResult) {
     }
 }
 
-// 🟢 White input bar
+// 🟢 Themed input bar
 @Composable
-private fun BottomInputBarWhite(
+private fun BottomInputBar(
     message: String,
     isLoading: Boolean,
     onMessageChange: (String) -> Unit,
@@ -320,31 +320,32 @@ private fun BottomInputBarWhite(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .clip(RoundedCornerShape(50))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onUploadClick) {
-            Icon(Icons.Default.AttachFile, contentDescription = "Upload file", tint = Color.DarkGray)
+            Icon(Icons.Default.AttachFile, contentDescription = "Upload file", tint = MaterialTheme.colorScheme.onSurface)
         }
 
         IconButton(onClick = { /* TODO: Mic */ }) {
-            Icon(Icons.Default.Mic, contentDescription = "Mic", tint = Color.Gray)
+            Icon(Icons.Default.Mic, contentDescription = "Mic", tint = MaterialTheme.colorScheme.onSurface)
         }
 
         BasicTextField(
             value = message,
             onValueChange = onMessageChange,
             singleLine = true,
-            textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
+            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp),
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 8.dp),
             decorationBox = { innerTextField ->
                 if (message.isEmpty()) {
-                    Text("Verify another", color = Color.Gray, fontSize = 16.sp)
+                    Text("Verify a claim", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 16.sp)
                 }
                 innerTextField()
             }
@@ -355,10 +356,10 @@ private fun BottomInputBarWhite(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF3578E5)),
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowUpward, contentDescription = "Send", tint = Color.White, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.ArrowUpward, contentDescription = "Send", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
             }
         }
     }
