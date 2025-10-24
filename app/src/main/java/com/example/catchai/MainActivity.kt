@@ -46,10 +46,7 @@ fun CatchAiApp() {
             )
         }
         composable("media_detector") {
-            AiMediaDetectorScreen(onAnalyzeClick = { navController.navigate("detection_results") })
-        }
-        composable("detection_results") {
-            DetectionResultsScreen()
+            AiMediaDetectorScreen()
         }
         composable("fact_checker") {
             AiChatbotFactCheckerScreen()

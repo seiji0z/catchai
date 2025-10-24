@@ -1,6 +1,8 @@
 package com.example.catchai.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -8,13 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Mic
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.catchai.viewmodel.ChatEvent
+import com.example.catchai.viewmodel.ChatViewModel
+import com.google.ai.client.generativeai.type.TextPart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AiChatbotFactCheckerScreen() {
-    var message by remember { mutableStateOf("") }
+fun AiChatbotFactCheckerScreen(
+    chatViewModel: ChatViewModel = viewModel()
+) {
+    val uiState by chatViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -46,8 +52,22 @@ fun AiChatbotFactCheckerScreen() {
             Text("  • Focus on one claim at a time")
 
             // Chat history
-            Box(modifier = Modifier.weight(1f)){
+            LazyColumn(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
+                items(uiState.chatHistory) { content ->
+                    val text = (content.parts.first() as? TextPart)?.text ?: "Error: Could not load text"
+                    val role = if (content.role == "user") "User" else "Gemini"
 
+                    Text(text = "$role: $text")
+                }
+            }
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+
+            uiState.errorMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // Message input
@@ -59,12 +79,15 @@ fun AiChatbotFactCheckerScreen() {
                     Icon(Icons.Default.Mic, contentDescription = null)
                 }
                 OutlinedTextField(
-                    value = message,
-                    onValueChange = { message = it },
+                    value = uiState.message,
+                    onValueChange = { chatViewModel.onEvent(ChatEvent.OnMessageChange(it)) },
                     placeholder = { Text("Type your query...") },
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = { /* Handle send */ }) {
+                IconButton(
+                    onClick = { chatViewModel.onEvent(ChatEvent.OnSendMessage(uiState.message)) },
+                    enabled = !uiState.isLoading
+                ) {
                     Icon(Icons.Default.Send, contentDescription = null)
                 }
             }
