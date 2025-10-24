@@ -3,17 +3,23 @@ package com.example.catchai.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.catchai.viewmodel.ChatEvent
+import com.example.catchai.viewmodel.ChatMessage
 import com.example.catchai.viewmodel.ChatViewModel
-import com.google.ai.client.generativeai.type.TextPart
+import com.example.catchai.viewmodel.FactCheckResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,11 +59,18 @@ fun AiChatbotFactCheckerScreen(
 
             // Chat history
             LazyColumn(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
-                items(uiState.chatHistory) { content ->
-                    val text = (content.parts.first() as? TextPart)?.text ?: "Error: Could not load text"
-                    val role = if (content.role == "user") "User" else "Gemini"
-
-                    Text(text = "$role: $text")
+                items(uiState.chatHistory) { message ->
+                    when (message) {
+                        is ChatMessage.UserMessage -> {
+                            Text(text = "User: ${message.text}")
+                        }
+                        is ChatMessage.ModelFactCheck -> {
+                            FactCheckResultContent(result = message.result)
+                        }
+                        is ChatMessage.ModelError -> {
+                            Text(text = "Gemini: ${message.message}")
+                        }
+                    }
                 }
             }
 
@@ -89,6 +102,63 @@ fun AiChatbotFactCheckerScreen(
                     enabled = !uiState.isLoading
                 ) {
                     Icon(Icons.Default.Send, contentDescription = null)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FactCheckResultContent(result: FactCheckResult) {
+    val uriHandler = LocalUriHandler.current
+
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Verification Status
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Verification Status: ", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    if (result.isReal) "Real" else "Not Real",
+                    color = if (result.isReal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            // Confidence Score
+            Column {
+                Text("Confidence Score: ${result.confidenceScore}%", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = result.confidenceScore / 100f,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // Detailed Analysis
+            Column {
+                Text("Detailed Analysis:", style = MaterialTheme.typography.bodyLarge)
+                Text(result.detailedAnalysis, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            // Trusted Sources
+            Column {
+                Text("Trusted Sources:", style = MaterialTheme.typography.bodyLarge)
+                result.trustedSources.forEach { sourceUrl ->
+                    ClickableText(
+                        text = AnnotatedString(sourceUrl),
+                        onClick = {
+                            try {
+                                uriHandler.openUri(sourceUrl)
+                            } catch (e: Exception) {
+                                // Handle cases where URI is invalid or no app can handle it
+                            }
+                        },
+                        style = TextStyle(
+                            color = MaterialTheme.colorScheme.secondary,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
             }
         }
