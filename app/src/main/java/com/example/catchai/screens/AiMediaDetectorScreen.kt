@@ -1,3 +1,4 @@
+
 package com.example.catchai.screens
 
 import android.graphics.BitmapFactory
@@ -6,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +42,8 @@ import java.io.InputStream
 @Composable
 fun AiMediaDetectorScreen(
     mediaDetectorViewModel: MediaDetectorViewModel = viewModel(),
+    onMenuClick: () -> Unit,
+    onBackToHome: () -> Unit
 ) {
     val uiState by mediaDetectorViewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -55,7 +60,23 @@ fun AiMediaDetectorScreen(
         }
     }
 
-    Scaffold() { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("AI Media Detector") },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -175,7 +196,7 @@ fun AiMediaDetectorScreen(
 
                 uiState.detectionResult?.let { result ->
                     Spacer(modifier = Modifier.height(24.dp))
-                    DetectionResultContent(result = result)
+                    DetectionResultContent(result = result, onBackToHome = onBackToHome)
                 }
 
                 uiState.errorMessage?.let { error ->
@@ -190,7 +211,7 @@ fun AiMediaDetectorScreen(
 }
 
 @Composable
-private fun DetectionResultContent(result: DetectionResult) {
+private fun DetectionResultContent(result: DetectionResult, onBackToHome: () -> Unit) {
     val uriHandler = LocalUriHandler.current
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -231,5 +252,11 @@ private fun DetectionResultContent(result: DetectionResult) {
                 )
             }
         }
+        Text(
+            "← Back to Dashboard",
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.clickable { onBackToHome() }
+        )
     }
 }

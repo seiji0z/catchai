@@ -1,14 +1,15 @@
+
 package com.example.catchai.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -18,11 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,12 +33,29 @@ import com.example.catchai.viewmodel.FactCheckResult
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatbotFactCheckerScreen(
-    chatViewModel: ChatViewModel = viewModel()
+    chatViewModel: ChatViewModel = viewModel(),
+    onMenuClick: () -> Unit,
+    onBackToHome: () -> Unit
 ) {
     val uiState by chatViewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = Color.Black,
+        topBar = {
+            TopAppBar(
+                title = { Text("AI Chatbot Fact-Checker") },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Black,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        },
         bottomBar = {
             BottomInputBar(
                 message = uiState.message,
@@ -119,7 +135,7 @@ fun AiChatbotFactCheckerScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.End 
+                                    horizontalArrangement = Arrangement.End
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -140,9 +156,9 @@ fun AiChatbotFactCheckerScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.Start 
+                                    horizontalArrangement = Arrangement.Start
                                 ) {
-                                    FactCheckResultContent(result = message.result)
+                                    FactCheckResultContent(result = message.result, onBackToHome = onBackToHome)
                                 }
                             }
 
@@ -198,7 +214,7 @@ fun FactTipPill(text: String, isHighlighted: Boolean = false) {
 }
 
 @Composable
-private fun FactCheckResultContent(result: FactCheckResult) {
+private fun FactCheckResultContent(result: FactCheckResult, onBackToHome: () -> Unit) {
     val uriHandler = LocalUriHandler.current
 
     Column(
@@ -303,7 +319,8 @@ private fun FactCheckResultContent(result: FactCheckResult) {
         Text(
             "← Back to Dashboard",
             color = Color.White,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.clickable { onBackToHome() }
         )
     }
 }

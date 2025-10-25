@@ -1,3 +1,4 @@
+
 package com.example.catchai.screens
 
 import android.net.Uri
@@ -23,7 +24,7 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportContentScreen(onSubmitReportClick: () -> Unit) {
+fun ReportContentScreen(onSubmitReportClick: () -> Unit, onMenuClick: () -> Unit) {
     var reportType by remember { mutableStateOf("") }
     var contentUrl by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -50,7 +51,7 @@ fun ReportContentScreen(onSubmitReportClick: () -> Unit) {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = { /* Back or Menu */ }) {
+                    IconButton(onClick = onMenuClick) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                     }
                 },

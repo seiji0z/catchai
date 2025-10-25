@@ -1,3 +1,4 @@
+
 package com.example.catchai
 
 import android.os.Bundle
@@ -7,8 +8,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.catchai.screens.*
 import com.example.catchai.ui.theme.CATCHAITheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,46 +45,71 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CatchAiApp() {
     val navController = rememberNavController()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    NavHost(navController = navController, startDestination = "splash") {
-
-        // SPLASH SCREEN
-        composable("splash") {
-            SplashScreen(
-                onTimeout = { navController.navigate("login") {
-                    popUpTo("splash") { inclusive = true }
-                }}
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            NavDrawer(
+                navController = navController,
+                drawerState = drawerState,
+                scope = scope
             )
         }
+    ) {
+        NavHost(navController = navController, startDestination = "splash") {
 
-        // LOGIN SCREEN
-        composable("login") {
-            LoginScreen(onLoginClick = { navController.navigate("home") })
-        }
+            // SPLASH SCREEN
+            composable("splash") {
+                SplashScreen(
+                    onTimeout = {
+                        navController.navigate("login") {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    }
+                )
+            }
 
-        // HOME
-        composable("home") {
-            HomeScreen(
-                onMediaDetectorClick = { navController.navigate("media_detector") },
-                onFactCheckerClick = { navController.navigate("fact_checker") },
-                onReportContentClick = { navController.navigate("report_content") }
-            )
-        }
+            // LOGIN SCREEN
+            composable("login") {
+                LoginScreen(onLoginClick = { navController.navigate("home") })
+            }
 
-        composable("media_detector") {
-            AiMediaDetectorScreen()
-        }
-        composable("fact_checker") {
-            AiChatbotFactCheckerScreen()
-        }
-        composable("report_content") {
-            ReportContentScreen(onSubmitReportClick = { navController.navigate("report_confirmation") })
-        }
-        composable("report_confirmation") {
-            ReportConfirmationScreen(
-                onNewReportClick = { navController.navigate("report_content") },
-                onBackClick = { navController.popBackStack() }
-            )
+            // HOME
+            composable("home") {
+                HomeScreen(
+                    onMediaDetectorClick = { navController.navigate("media_detector") },
+                    onFactCheckerClick = { navController.navigate("fact_checker") },
+                    onReportContentClick = { navController.navigate("report_content") },
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable("media_detector") {
+                AiMediaDetectorScreen(
+                    onMenuClick = { scope.launch { drawerState.open() } },
+                    onBackToHome = { navController.navigate("home") }
+                )
+            }
+            composable("fact_checker") {
+                AiChatbotFactCheckerScreen(
+                    onMenuClick = { scope.launch { drawerState.open() } },
+                    onBackToHome = { navController.navigate("home") }
+                )
+            }
+            composable("report_content") {
+                ReportContentScreen(
+                    onSubmitReportClick = { navController.navigate("report_confirmation") },
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            }
+            composable("report_confirmation") {
+                ReportConfirmationScreen(
+                    onNewReportClick = { navController.navigate("report_content") },
+                    onBackClick = { navController.navigate("home") }
+                )
+            }
         }
     }
 }

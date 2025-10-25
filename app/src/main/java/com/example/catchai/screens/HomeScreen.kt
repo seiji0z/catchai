@@ -1,3 +1,4 @@
+
 package com.example.catchai.screens
 
 import androidx.compose.animation.AnimatedVisibility
@@ -31,7 +32,8 @@ import com.example.catchai.R
 fun HomeScreen(
     onMediaDetectorClick: () -> Unit,
     onFactCheckerClick: () -> Unit,
-    onReportContentClick: () -> Unit
+    onReportContentClick: () -> Unit,
+    onMenuClick: () -> Unit
 ) {
     var isVisible by remember { mutableStateOf(false) }
 
@@ -51,7 +53,7 @@ fun HomeScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* open menu */ }) {
+                    IconButton(onClick = onMenuClick) {
                         Icon(
                             Icons.Default.Menu,
                             contentDescription = "Menu",
